@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := LED_Watch_Test
+BUILD_ARTIFACT_NAME := LED-Matrix-Watch
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-LED_Watch_Test.elf \
+LED-Matrix-Watch.elf \
 
 MAP_FILES += \
-LED_Watch_Test.map \
+LED-Matrix-Watch.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-LED_Watch_Test.list \
+LED-Matrix-Watch.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: LED_Watch_Test.elf secondary-outputs
+main-build: LED-Matrix-Watch.elf secondary-outputs
 
 # Tool invocations
-LED_Watch_Test.elf LED_Watch_Test.map: $(OBJS) $(USER_OBJS) /home/eric/STM32CubeIDE/workspace_1.14.0/LED_Watch_Test/STM32C011F4UX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "LED_Watch_Test.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/eric/STM32CubeIDE/workspace_1.14.0/LED_Watch_Test/STM32C011F4UX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LED_Watch_Test.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+LED-Matrix-Watch.elf LED-Matrix-Watch.map: $(OBJS) $(USER_OBJS) /home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch/STM32C011F4UX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "LED-Matrix-Watch.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch/STM32C011F4UX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LED-Matrix-Watch.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-LED_Watch_Test.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LED_Watch_Test.list"
+LED-Matrix-Watch.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LED-Matrix-Watch.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) LED_Watch_Test.elf LED_Watch_Test.list LED_Watch_Test.map default.size.stdout
+	-$(RM) LED-Matrix-Watch.elf LED-Matrix-Watch.list LED-Matrix-Watch.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

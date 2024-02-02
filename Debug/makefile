@@ -34,34 +34,35 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := LED-Matrix-Watch
+BUILD_ARTIFACT_NAME := LED-Matrix-Watch-Alt
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-LED-Matrix-Watch.elf \
+LED-Matrix-Watch-Alt.elf \
 
 MAP_FILES += \
-LED-Matrix-Watch.map \
+LED-Matrix-Watch-Alt.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-LED-Matrix-Watch.list \
+LED-Matrix-Watch-Alt.list \
 
 
 # All Target
-all: main-build
+all:
+	+@$(MAKE) --no-print-directory pre-build && $(MAKE) --no-print-directory main-build
 
 # Main-build Target
-main-build: LED-Matrix-Watch.elf secondary-outputs
+main-build: LED-Matrix-Watch-Alt.elf secondary-outputs
 
 # Tool invocations
-LED-Matrix-Watch.elf LED-Matrix-Watch.map: $(OBJS) $(USER_OBJS) /home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch/STM32C011F4UX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "LED-Matrix-Watch.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch/STM32C011F4UX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LED-Matrix-Watch.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+LED-Matrix-Watch-Alt.elf LED-Matrix-Watch-Alt.map: $(OBJS) $(USER_OBJS) /home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch-Alt/STM32C011F4UX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "LED-Matrix-Watch-Alt.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/eric/STM32CubeIDE/workspace_1.14.0/LED-Matrix-Watch-Alt/STM32C011F4UX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LED-Matrix-Watch-Alt.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +71,18 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-LED-Matrix-Watch.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LED-Matrix-Watch.list"
+LED-Matrix-Watch-Alt.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LED-Matrix-Watch-Alt.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) LED-Matrix-Watch.elf LED-Matrix-Watch.list LED-Matrix-Watch.map default.size.stdout
+	-$(RM) LED-Matrix-Watch-Alt.elf LED-Matrix-Watch-Alt.list LED-Matrix-Watch-Alt.map default.size.stdout
+	-@echo ' '
+
+pre-build:
+	touch LED-Matrix-Watch.elf
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
@@ -89,6 +94,6 @@ fail-specified-linker-script-missing:
 warn-no-linker-script-specified:
 	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
 
-.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified
+.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified pre-build
 
 -include ../makefile.targets

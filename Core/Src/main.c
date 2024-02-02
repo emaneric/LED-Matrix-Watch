@@ -1,19 +1,7 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
+RGB color order is BGR
+Piskel generated BGR colors automatically
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -31,6 +19,28 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MONTH (\
+  __DATE__ [2] == 'n' ? (__DATE__ [1] == 'a' ? 1 : 6) \
+: __DATE__ [2] == 'b' ? 2 \
+: __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 3 : 4) \
+: __DATE__ [2] == 'y' ? 5 \
+: __DATE__ [2] == 'l' ? 7 \
+: __DATE__ [2] == 'g' ? 8 \
+: __DATE__ [2] == 'p' ? 9 \
+: __DATE__ [2] == 't' ? 10 \
+: __DATE__ [2] == 'v' ? 11 \
+: 12)
+
+#define RED 0xFF0000
+#define ORANGE 0xFF8400
+#define GREEN 0x00FF00
+#define BLUE 0x0000FF
+
+#define NONE 0x000000
+
+#define displaySizeX 12
+#define displaySizeY 7
+#define displayTotalPix 84
 
 /* USER CODE END PD */
 
@@ -40,41 +50,139 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc1;
-
-I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
-const uint8_t numLED = 84;
+//const uint8_t numLED = 84;
 const uint8_t empty_frame = 0;
 
-uint8_t LED_clear_frames[] = {0b11100000, 0, 0, 0};
+static uint32_t test_image[1][84] = {
+{
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200,
+0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xff00ff53, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200, 0xffff6200
+}
+};
 
-uint8_t tx_buffer[] = {0b1110010, 0, 1, 0};
-uint8_t tx_buffer2[] = {0b1110100, 255, 0, 0};
+static uint32_t one[1][35] = {	//5x7
+{
+0xff000000, 0xff000000, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xffffffff, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xff000000, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xff000000, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xff000000, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xff000000, 0xffffffff, 0xff000000, 0xff000000,
+0xff000000, 0xffffffff, 0xffffffff, 0xffffffff, 0xff000000
+}
+};
 
-uint8_t LED_index = 0;
+uint32_t frame_buffer[84] = {
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
+};
 
-uint16_t ADC_raw;
+static const uint32_t test_sprite[1][16] = {
+{
+0xff0000ff, 0xff00fffb, 0xff00fffb, 0xff0000ff,
+0xffff00d9, 0xff0000ff, 0xff0000ff, 0xff36b800,
+0xffff00d9, 0xff0000ff, 0xff0000ff, 0xff36b800,
+0xff0000ff, 0xffff000f, 0xffff000f, 0xff0000ff
+}
+};
 
+static const uint32_t test_sprite2[1][8] = {
+{
+0xff0000ff, 0xff00ff00,
+0xff0000ff, 0xff00ff00,
 
+}
+};
 
+static const uint32_t star_animation[6][25] = {
+{
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
+},
+{
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0xffffffff, 0xffffffff, 0xffffffff, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
+},
+{
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0xffffffff, 0x00000000, 0xffffffff, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000
+},
+{
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000,
+0x00000000, 0xffffffff, 0x00000000, 0xffffffff, 0x00000000,
+0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0xffffffff,
+0x00000000, 0xffffffff, 0x00000000, 0xffffffff, 0x00000000,
+0x00000000, 0x00000000, 0xffffffff, 0x00000000, 0x00000000
+},
+{
+0x00000000, 0xffffffff, 0x00000000, 0xffffffff, 0x00000000,
+0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0xffffffff,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0xffffffff,
+0x00000000, 0xffffffff, 0x00000000, 0xffffffff, 0x00000000
+},
+{
+0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0xffffffff,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0xffffffff
+}
+};
+
+static const uint32_t heart[1][42] = {
+{
+0x00000000, 0xffd600ff, 0xffd600ff, 0x00000000, 0xffd600ff, 0xffd600ff, 0x00000000,
+0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff,
+0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff,
+0x00000000, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0x00000000,
+0x00000000, 0x00000000, 0xffd600ff, 0xffd600ff, 0xffd600ff, 0x00000000, 0x00000000,
+0x00000000, 0x00000000, 0x00000000, 0xffd600ff, 0x00000000, 0x00000000, 0x00000000
+}
+};
+
+float global_brightness = 0.1;	//0.05 to 1
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_ADC1_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
-void LED_init(void);
-void LED_clear(void);
+//void set_time_auto(void);
+void initDisplay(void);
+void fillDisplay(uint32_t color);
+//void drawSprite(uint8_t x, uint8_t y, uint8_t sprite_width, uint8_t sprite_height, uint32_t sprite_array[][sprite_width*sprite_height], uint32_t color);
+void drawSprite(int8_t x, int8_t y, uint8_t sprite_width, uint8_t sprite_height, uint32_t sprite_array[sprite_width*sprite_height], uint32_t color);
+void clearDisplay(void);
 void tx_start_frame(void);
 void tx_end_frame(void);
+void updateDisplay(void);
+uint32_t RGB_to_BGR(uint32_t RGB);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -89,7 +197,8 @@ void tx_end_frame(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	//RTC_TimeTypeDef sTime1;
+	//RTC_DateTypeDef sDate1;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -110,83 +219,180 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ADC1_Init();
-  MX_I2C1_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  //uint8_t frame = 0;
+  //uint8_t frame_total = sizeof(new_piskel_data)/sizeof(new_piskel_data[0]);
 
-  HAL_GPIO_WritePin(DIV_EN_GPIO_Port, DIV_EN_Pin, 0);
-  HAL_Delay(1);
+
+  //It is important not to exceed battery current limit, nominally 150mA
+  //normal range for global brightness should be 0.05 to 0.3
+  //When when all pixels are on, brightness need to be lowered to stay within 150mA current draw
 
   //power on and clear LEDs
-  LED_init();
-
+  initDisplay();
   /* USER CODE END 2 */
+
+  uint8_t sprite_x_pos = 0;
+  int8_t mode = 1;
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 
+	  //memcpy(frame_buffer, test_image, displayTotalPix*4);
+	  //updateDisplay();
+	  //HAL_Delay(1000);
+	  //clearDisplay();
+	  //updateDisplay();
+	  //HAL_Delay(1000);
 
 
 
+	  //drawSprite(0,0,12,7,test_image,0);
+	  //drawSprite(0,0,12,7,test_image[0],0);
+	  //drawSprite(3,1,2,2,test_sprite2[0],0);
+
+	  //drawSprite(3,1,2,2,test_sprite2[0],0);
+	  //updateDisplay();	//send the frame buffer to the display
+	  //HAL_Delay(500);
+	  //clearDisplay();
 
 
+	  drawSprite(sprite_x_pos,0,5,7,one[0],ORANGE);
 
+	  drawSprite(0,0,7,6,heart[0],NONE);
 
+	  updateDisplay();
+	  HAL_Delay(100);
+	  clearDisplay();
 
+	  sprite_x_pos = sprite_x_pos + mode;
 
-
-
-
-
-
-
-
-
-
-	  HAL_ADC_Start(&hadc1);
-	  HAL_Delay(10);
-	  HAL_ADC_PollForConversion(&hadc1, 1000);
-	  ADC_raw = HAL_ADC_GetValue(&hadc1);
-
-	  if (ADC_raw < 2975){
-		  //tx_buffer[] = {0b1110010, 0, 1, 0};
-		  tx_buffer[2] = 0;
-		  tx_buffer[3] = 1;
-	  }
-	  else{
-		  tx_buffer[2] = 1;
-		  tx_buffer[3] = 0;
-	  }
-
-
-
-
-
-	  tx_start_frame();
-
-	  for (uint8_t i = 0; i <= numLED; i++) {
-
-		  if (i == LED_index){
-			  HAL_SPI_Transmit(&hspi1, tx_buffer2, 4, 100);
-		  }
-
-		  else{
-			  HAL_SPI_Transmit(&hspi1, tx_buffer, 4, 100);
-		  }
+	  if (sprite_x_pos > 7)
+	  {
+		  mode = -1;
 	  }
 
-	  tx_end_frame();
-	  HAL_Delay(50);
+	  if (sprite_x_pos < 1)
+	  {
+		  mode = 1;
+	  }
 
-	  if (LED_index >= numLED){
-		  LED_index = 0;
-	  }
-	  else{
-		  LED_index++;
-	  }
+
+/*	  drawSprite(1,1,5,5,star_animation[0],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+	  drawSprite(6,1,5,5,star_animation[5],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(70);
+
+
+	  drawSprite(1,1,5,5,star_animation[1],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+
+	  drawSprite(6,1,5,5,star_animation[0],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(200);
+
+
+	  drawSprite(1,1,5,5,star_animation[2],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+
+	  drawSprite(6,1,5,5,star_animation[1],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(200);
+
+
+	  drawSprite(1,1,5,5,star_animation[3],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+	  drawSprite(6,1,5,5,star_animation[2],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(200);
+
+
+	  drawSprite(1,1,5,5,star_animation[4],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+	  drawSprite(6,1,5,5,star_animation[3],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(200);
+
+
+	  drawSprite(1,1,5,5,star_animation[5],0);
+	  updateDisplay();	//send the frame buffer to the display
+
+
+	  drawSprite(6,1,5,5,star_animation[4],0);
+	  updateDisplay();	//send the frame buffer to the display
+	  HAL_Delay(200);
+
+
+	  clearDisplay();*/
+
+
+
+
+/*	  uint8_t sprite_size = sizeof(one)/sizeof(one[0][0]);
+
+	  for (uint8_t i = 0; i <= sprite_size; i++)
+	  {
+			  //if x is larger than x size of the chacater to draw, skip forward in the  array
+			  if (x == 5){	//5 -1 = 4
+				  x = x + 7;	//12-5 = 7
+
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+
+			  else if (x == 17){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+			  else if (x == 29){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+			  else if (x == 41){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+			  else if (x == 53){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+			  else if (x == 65){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+			  else if (x == 77){
+				  x = x + 7;
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+
+			  else
+			  {
+				  if (((one[0][i]) & 0x00FFFFFF) != 0) frame_buffer[x] = one[0][i];
+				  x++;
+			  }
+
+
+	  }*/
 
     /* USER CODE END WHILE */
 
@@ -209,7 +415,7 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV8;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -225,117 +431,10 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_ADC1_Init(void)
-{
-
-  /* USER CODE BEGIN ADC1_Init 0 */
-
-  /* USER CODE END ADC1_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC1_Init 1 */
-
-  /* USER CODE END ADC1_Init 1 */
-
-  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-  */
-  hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV1;
-  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  hadc1.Init.LowPowerAutoWait = ENABLE;
-  hadc1.Init.LowPowerAutoPowerOff = ENABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-  hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_1CYCLE_5;
-  hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_1CYCLE_5;
-  hadc1.Init.OversamplingMode = DISABLE;
-  hadc1.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
-  if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN ADC1_Init 2 */
-
-  /* USER CODE END ADC1_Init 2 */
-
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00101520;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -361,7 +460,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -390,22 +489,10 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DIV_EN_GPIO_Port, DIV_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_EN_GPIO_Port, LED_EN_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : DIV_EN_Pin */
-  GPIO_InitStruct.Pin = DIV_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(DIV_EN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_EN_Pin */
   GPIO_InitStruct.Pin = LED_EN_Pin;
@@ -414,36 +501,236 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BMI_INT_1_Pin BMI_INT_2_Pin EXT_RTC_INT_Pin */
-  GPIO_InitStruct.Pin = BMI_INT_1_Pin|BMI_INT_2_Pin|EXT_RTC_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : CHRG_Pin */
-  GPIO_InitStruct.Pin = CHRG_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(CHRG_GPIO_Port, &GPIO_InitStruct);
-
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-void LED_init(void)
+void initDisplay(void)
 {
+	//HAL_GPIO_WritePin(LED_EN_GPIO_Port, LED_EN_Pin, 0);
+	//HAL_Delay(1000);
 	HAL_GPIO_WritePin(LED_EN_GPIO_Port, LED_EN_Pin, 1);
 	HAL_Delay(10);
-	LED_clear();
+	clearDisplay();
+	//__NOP();
 }
 
-void LED_clear(void)
+void clearDisplay(void)
 {
+	uint8_t clear_frames[] = {0b11100000, 0, 0, 0};
+
 	tx_start_frame();
-	for (uint8_t i = 0; i <= numLED; i++) HAL_SPI_Transmit(&hspi1, LED_clear_frames, 4, 100);
+	for (uint8_t i = 0; i <= displayTotalPix; i++) HAL_SPI_Transmit(&hspi1, clear_frames, 4, 100);
 	tx_end_frame();
+
+	memset(frame_buffer, 0, displayTotalPix*4);
 }
+
+void fillDisplay(uint32_t color)
+{
+	for (uint8_t i = 0; i <= displayTotalPix; i++)
+	{
+		frame_buffer[i] = color;
+	}
+}
+
+
+//void drawSprite(uint8_t x, uint8_t y, uint8_t sprite_width, uint8_t sprite_height, uint32_t sprite_array[][sprite_width*sprite_height], uint32_t color)
+void drawSprite(int8_t x, int8_t y, uint8_t sprite_width, uint8_t sprite_height, uint32_t sprite_array[sprite_width*sprite_height], uint32_t color)
+{
+
+	//x = 0, y = 0, one, 5 x 7, 0
+
+	//uint8_t sprite_size = sizeof(one)/sizeof(one[0][0]);
+	//uint8_t sprite_size = sizeof(sprite_array)/sizeof(sprite_array[0]);
+	uint8_t sprite_size = sprite_width * sprite_height;
+	uint8_t display_i = 0;
+	uint8_t sprite_i = 0;
+	uint8_t line_count = 1;
+	uint8_t line_start = 0;
+	uint8_t found_endLine = 0;
+
+	//stores the numbers for when to skip lines in the display_i index given the dimmensions of the sprite
+	uint8_t sprite_endlines[sprite_height];
+	sprite_endlines[0] =  sprite_width - 1;
+
+	for (uint8_t i = 1; i <= sprite_height; i++)
+	{
+		sprite_endlines[i] = sprite_endlines[i-1] + sprite_width;
+	}
+
+
+
+	display_i = (displaySizeX * y) + x;	//start off from the correct index
+	while (sprite_i <= (sprite_size - 1))
+	{
+
+		//frame_buffer[display_i] = sprite_array[sprite_i];	//working well!
+		if(((sprite_array[sprite_i] & 0x00FFFFFF) != 0) && color != 0)	//testing if color works
+		{
+			frame_buffer[display_i] = color;
+		}
+		else
+		{
+			frame_buffer[display_i] = sprite_array[sprite_i];	//working well!
+		}
+
+		//search if sprite_i is in the list of endlines
+		//for(uint8_t i = 0; i < (sizeof(sprite_endlines)/sizeof(sprite_endlines[0])); i++)
+		for (uint8_t i = 0; i <= sprite_height; i++)
+		{
+		    if (sprite_i == sprite_endlines[i])
+		    {
+		    	display_i = display_i + (displaySizeX - sprite_width + 1);
+		    	found_endLine = 1;
+		        break;
+		    }
+		}
+		//if for loop didn't find anything, do not go to the next line
+		if (found_endLine == 0)
+		{
+			display_i++;
+		}
+		//reset the found endline flag
+		else
+		{
+			found_endLine = 0;
+		}
+
+
+
+/*		if (sprite_i == 4)	//need to find how to programatically find these numbers
+		//if (sprite_i == sprite_width - 1)
+		{
+			display_i = display_i + (displaySizeX - sprite_width + 1);
+		}
+
+		else if (sprite_i == 9)
+		{
+			display_i = display_i + (displaySizeX - sprite_width + 1);
+		}
+
+		else if (sprite_i == 14)
+		{
+			display_i = display_i + (displaySizeX - sprite_width + 1);
+		}
+
+
+		else
+		{
+			display_i++;
+		}*/
+
+		//frame_buffer[display_i] = sprite_array[sprite_i];
+
+		sprite_i++;
+	}
+/*	while (sprite_i <= (sprite_size - 1)){
+
+		if (line_start == 0)
+		{
+			display_i = (displaySizeX * y) + x + sprite_i + 1; //not sure about the extra one added
+		}
+
+		frame_buffer[display_i] = sprite_array[sprite_i];
+		sprite_i++;
+		__NOP();
+
+		if (sprite_i == (sprite_width) * line_count){
+			display_i = display_i + displaySizeX;
+			line_count++;
+			line_start = 1;
+		}
+
+		else
+		{
+			line_start = 0;
+		}
+
+
+	}*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*	  for (uint8_t sprite_i = 0; sprite_i <= sprite_size; sprite_i++)
+	  {
+			  //if x is larger than x size of the chacater to draw, skip forward in the  array
+			  if (frameBuffer_i == 5){	//5 -1 = 4
+				  frameBuffer_i = frameBuffer_i + 7;	//12-5 = 7
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+
+			  else if (frameBuffer_i == 17){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+			  else if (frameBuffer_i == 29){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+			  else if (frameBuffer_i == 41){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+			  else if (frameBuffer_i == 53){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+			  else if (frameBuffer_i == 65){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+			  else if (frameBuffer_i == 77){
+				  frameBuffer_i = frameBuffer_i + 7;
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+
+			  else
+			  {
+				  if (((one[0][sprite_i]) & 0x00FFFFFF) != 0) frame_buffer[frameBuffer_i] = one[0][sprite_i];
+				  frameBuffer_i++;
+			  }
+	  }*/
+
+
+}
+
+
+
+
+
+
+
+
 
 void tx_start_frame(void)
 {
@@ -453,6 +740,47 @@ void tx_start_frame(void)
 void tx_end_frame(void)
 {
 	for (uint8_t i = 0; i <= 6; i++) HAL_SPI_Transmit(&hspi1, (uint8_t *)&empty_frame, 1, 100);
+}
+
+void updateDisplay(void)
+{
+	tx_start_frame();
+
+	for (uint8_t i = 0; i <= displayTotalPix; i++) {
+
+		  //get the color values from the frame array
+		  //uint8_t red = (frame_buffer[i] & 0xFF0000) >> 16;
+		  //uint8_t green = (frame_buffer[i] & 0xFF00) >> 8;
+		  //uint8_t blue = (frame_buffer[i] & 0xFF);
+		  uint8_t blue = (frame_buffer[i] & 0xFF0000) >> 16;
+		  uint8_t green = (frame_buffer[i] & 0xFF00) >> 8;
+		  uint8_t red = (frame_buffer[i] & 0xFF);
+
+		  //scale the color values with global brightness
+		  red = red * global_brightness;
+		  green = green * global_brightness;
+		  blue = blue * global_brightness;
+
+		  //set the local brightness for a given pixel based on global brightness
+		  uint8_t pixel_brightness = 31 * global_brightness;
+		  uint8_t pixel_start = 0b11100000 | pixel_brightness;
+
+		  //uint8_t tx_buffer[] = {pixel_start, red, green, blue};
+		  uint8_t tx_buffer[] = {pixel_start, blue, green, red};
+
+		  HAL_SPI_Transmit(&hspi1, tx_buffer, 4, 100);
+	  }
+
+	  tx_end_frame();
+}
+
+uint32_t RGB_to_BGR(uint32_t RGB)
+{
+	uint32_t red = (RGB  & 0xFF0000) >> 16;
+	uint32_t green = (RGB  & 0x00FF00);
+	uint32_t blue = (RGB  & 0x0000FF) << 16;
+	uint32_t BGR = 0xFF000000 | red | green | blue;	//combine and add the alpha channel
+	return(BGR);
 }
 /* USER CODE END 4 */
 

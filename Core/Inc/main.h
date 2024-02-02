@@ -57,20 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DIV_EN_Pin GPIO_PIN_15
-#define DIV_EN_GPIO_Port GPIOC
-#define VBAT_MEAS_Pin GPIO_PIN_0
-#define VBAT_MEAS_GPIO_Port GPIOA
 #define LED_EN_Pin GPIO_PIN_3
 #define LED_EN_GPIO_Port GPIOA
-#define BMI_INT_1_Pin GPIO_PIN_7
-#define BMI_INT_1_GPIO_Port GPIOA
-#define BMI_INT_2_Pin GPIO_PIN_8
-#define BMI_INT_2_GPIO_Port GPIOA
-#define CHRG_Pin GPIO_PIN_11
-#define CHRG_GPIO_Port GPIOA
-#define EXT_RTC_INT_Pin GPIO_PIN_12
-#define EXT_RTC_INT_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
